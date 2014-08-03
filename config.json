@@ -1,0 +1,8 @@
+{
+"server": "irc.quakenet.org",
+"port": 6667,
+"prefixes": ".",
+"channel": "#urtfags",
+"nick": "statusbot",
+"owner": "zod_"
+}
