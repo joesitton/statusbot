@@ -20,6 +20,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
     
+    def on_nicknameinuse(self, conn, ev):
+        conn.nick(conn.get_nickname() + "_")
+    
     def on_ping(self, conn, ev):
         self.connection.pong(ev.target)
 
@@ -59,21 +62,41 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         except AttributeError:
             self.reply("Command not found: " + command)
 
-    def sockConnection(self, data):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    def sockSend(self, address, data):
+       sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        address = self.servers[data]
-        parts = address.split(":")
-        host = parts[0]
-        port = parts[1]
+       parts = address.split(":")
+       host = parts[0]
+       port = int(parts[1])
 
-        self.sock.connect((host, int(port)))
-        self.sock.send(b"\xFF\xFF\xFF\xFFgetstatus") #todo: move all this junk out of this func
-        self.response = self.sock.recv(1024)
-        self.response = self.response[4:].decode("UTF-8")
+       sock.connect((host, port))
+       sock.send(b"\xFF\xFF\xFF\xFF" + data.encode())
 
-        self.sparts = self.response.split("\n")
+       r = sock.recv(1024)
+       return r[4:].decode()
 
+    def serverHelper(self, string):
+        string = string.lower()
+        matches = []
+
+        if not string:
+            return
+
+        for s in self.servers:
+            if string in s:
+                matches.append(s)
+        
+        if string in self.servers:
+            matches = [string]
+
+        if not matches:
+            self.reply("No servers found matching '{}'.".format(string))
+        elif len(matches) > 1:
+            self.reply("There are multiple matches for '{}': {}".format(string, ", ".join(matches)))
+        else:
+            return matches[0], self.servers[matches[0]]
+
+        return None, None
 
     def cmd_help(self, issuedBy, data):
         """.help [command] - displays this message"""
@@ -103,20 +126,21 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def cmd_players(self, issuedBy, data):
         """.players [server] - show current players on the server"""
-        self.sockConnection(data)
+        name, server = self.serverHelper(data)
 
-        players = []
+        if server is None:
+            return
 
-        try:
-            for i in range(2, 64):
-                players.append(self.sparts[i])
-        except IndexError:
-            if len(players) == 1:
-                self.reply("There are no players on {0}'s".format(data))
-            else:
-                print(players)
-                self.reply("Players: " + ", ".join(players))
+        r = self.sockSend(server, "getstatus")
+        sparts = r.split("\n")
 
+        players = [p for p in sparts[2:] if p]
+
+        if not players:
+            self.reply("There are no players on " + name)
+        else:
+            self.reply("Players on {}: ".format(name) + 
+                       ", ".join(p.split(" ")[2][1:-1] for p in players))
 def main():
     try:
         configFile = open("config.json", "r")

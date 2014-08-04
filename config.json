@@ -4,5 +4,5 @@
 "prefixes": ".",
 "channel": "#nuubs",
 "nick": "statusbot",
-"owners": "zod_"
+"owners": ["zod_"]
 }
