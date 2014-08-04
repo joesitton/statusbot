@@ -2,6 +2,7 @@
 
 import irc.bot
 import json
+import socket
 
 class Pugbot(irc.bot.SingleServerIRCBot):
     def __init__(self, config):
@@ -9,9 +10,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.channel = config["channel"]
         self.target = self.channel
         self.cmdPrefixes = config["prefixes"]
-        self.password = ""
+        self.owners = config["owners"]
 
-        self.servers = [line.strip() for line in open("servers.txt", "r")]
+        self.servers = {}
+        for line in open("servers.txt", "r").readlines():
+            parts = line.split(" ")
+            self.servers[parts[0]] = parts[1]
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
@@ -55,6 +59,22 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         except AttributeError:
             self.reply("Command not found: " + command)
 
+    def sockConnection(self, data):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        address = self.servers[data]
+        parts = address.split(":")
+        host = parts[0]
+        port = parts[1]
+
+        self.sock.connect((host, int(port)))
+        self.sock.send(b"\xFF\xFF\xFF\xFFgetstatus") #todo: move all this junk out of this func
+        self.response = self.sock.recv(1024)
+        self.response = self.response[4:].decode("UTF-8")
+
+        self.sparts = self.response.split("\n")
+
+
     def cmd_help(self, issuedBy, data):
         """.help [command] - displays this message"""
         if data == "":
@@ -73,6 +93,29 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     def cmd_servers(self, issuedBy, data):
         """.servers - display server list"""
         self.reply("Servers: " + ", ".join(self.servers))
+
+    def cmd_kill(self, issuedBy, data):
+        """.kill - kills the bot"""
+        if issuedBy in self.owners:
+            self.die("Leaving")
+        else:
+            self.reply("You don't have access to that command")
+
+    def cmd_players(self, issuedBy, data):
+        """.players [server] - show current players on the server"""
+        self.sockConnection(data)
+
+        players = []
+
+        try:
+            for i in range(2, 64):
+                players.append(self.sparts[i])
+        except IndexError:
+            if len(players) == 1:
+                self.reply("There are no players on {0}'s".format(data))
+            else:
+                print(players)
+                self.reply("Players: " + ", ".join(players))
 
 def main():
     try:
