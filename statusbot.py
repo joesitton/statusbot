@@ -15,7 +15,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.servers = {}
         for line in open("servers.txt", "r").readlines():
             parts = line.split(" ")
-            self.servers[parts[0]] = parts[1]
+            addr = parts[-1]
+            name = " ".join(parts[:-1])
+            self.servers[name] = addr
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
@@ -83,12 +85,13 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             return
 
         for s in self.servers:
-            if string in s:
+            if string == s.lower():
+                matches = [s]
+                break
+
+            if string in s.lower():
                 matches.append(s)
         
-        if string in self.servers:
-            matches = [string]
-
         if not matches:
             self.reply("No servers found matching '{}'.".format(string))
         elif len(matches) > 1:
