@@ -20,6 +20,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
     
+    def on_nicknameinuse(self, conn, ev):
+        conn.nick(conn.get_nickname() + "_")
+    
     def on_ping(self, conn, ev):
         self.connection.pong(ev.target)
 
