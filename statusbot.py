@@ -11,6 +11,8 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.cmdPrefixes = config["prefixes"]
         self.password = ""
 
+        self.servers = [line.strip() for line in open("servers.txt", "r")]
+
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
     
@@ -67,6 +69,10 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 self.reply(command.__doc__)
             except AttributeError:
                 self.reply("Command not found: " + data)
+
+    def cmd_servers(self, issuedBy, data):
+        """.servers - display server list"""
+        self.reply("Servers: " + ", ".join(self.servers))
 
 def main():
     try:
