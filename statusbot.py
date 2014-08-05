@@ -98,7 +98,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 matches.append(s)
         
         if not matches:
-            self.reply("No servers found matching  {} .".format(string))
+            self.reply("No servers found matching  '{}' .".format(string))
         elif len(matches) > 1:
             self.reply("There are multiple matches for  {}: {}".format(string, ", ".join(matches)))
         else:
@@ -137,13 +137,13 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         if playersCmd:
             if not players:
-                self.reply("There are no players on " + name + "")
+                self.reply("There are no players on " + name)
             else:
                 self.reply("Players on {} ({}/{}):  ".format(name, len(players), svars["sv_maxclients"]) + 
                            ", ".join(p.split(" ")[2][1:-1] for p in players))
         elif serverCmd:
             self.rcon.send("{}".format(" ".join(data[1:])))
-            self.reply("{} command sent to {}".format(" ".join(data[1:]), name))
+            self.reply("'{}' command sent to {}".format(" ".join(data[1:]), name))
         else:
             gamemode = self._GAMEMODES[int(svars["g_gametype"])]
             if clanmems:
