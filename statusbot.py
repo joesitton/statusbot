@@ -147,7 +147,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         else:
             gamemode = self._GAMEMODES[int(svars["g_gametype"])]
             if clanmems:
-                self.reply("\x0316,2{}:    {}/{}    {}    {}  -  {} {}\x03".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"], clanmems, self.clan))
+                self.reply("\x0316,2{}:    {}/{} ({} {})    {}    {}\x03".format(name, len(players), svars["sv_maxclients"], clanmems, self.clan, gamemode, svars["mapname"]))
             else:
                 self.reply("\x0316,2{}:    {}/{}    {}    {}\x03".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"]))
 
