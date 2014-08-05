@@ -1,7 +1,9 @@
 ### IRC Statusbot ###
 
 ### Commands ###
-`.help`
-`.servers`
-`.kill`
-`.players [server]`
++ `.help`
++ `.servers`
++ `.players [server]`
++ `.status [server]`
++ `.kill [message]`
++ `.rcon [server] [command] [args...]`
