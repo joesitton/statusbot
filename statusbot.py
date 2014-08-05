@@ -15,6 +15,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.rconowners = config["rconowners"]
         self.password = config["rconpasswd"]
         self.clan = config["clantag"]
+        self.loggedin = self.rconowners
 
         self.servers = {}
         for line in open("servers.txt", "r").readlines():
@@ -51,21 +52,28 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         if (e.arguments[0][0] in self.cmdPrefixes):
             self.executeCommand(conn, e)
 
-    def executeCommand(self, conn, e, private = False):
-        issuedBy = e.source.nick
-        text = e.arguments[0][1:].split(" ")
+    def executeCommand(self, conn, ev):
+        issuedBy = ev.source.nick
+        text = ev.arguments[0][1:].split(" ")
         command = text[0].lower()
         data = " ".join(text[1:])
 
-        if private:
-            self.target = issuedBy
-        else:
-            self.target = self.channel
+        found = False
 
         try:
             commandFunc = getattr(self, "cmd_" + command)
             commandFunc(issuedBy, data)
+            found = True
         except AttributeError:
+            if data[:5] == issuedBy in self.loggedin:
+                try:
+                    commandFunc = getattr(self, "pw_cmd_" + command)
+                    commandFunc(issuedBy, data)
+                    found = True
+                except AttributeError:
+                    pass
+        
+        if not found:
             self.reply("Command not found: " + command)
 
     def sockSend(self, address, data):
@@ -130,7 +138,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         sparts = r.split("\n")
 
         players = [p for p in sparts[2:] if p]
-        nplayers = [players.replace("^1", "").replace("^2", "").replace("^3", "").replace("^4", "").replace("^5", "").replace("^6", "").replace("^7", "").replace("^8", "").replace("^9", "").replace("^0", "") for players in players]
+        nplayers = [players.replace("^1", "").replace("^2", "").replace("^3", "").replace("^4", "").replace("^5", "").replace("^6", "").replace("^7", "").replace("^8", "").replace("^9", "").replace("^0", "").replace("^-", "") for players in players]
         #FIXME: ^holy shit this is so fucking retarded. kill myself. someone pls let me know a better way -.-
         clanmems = " ".join(players).count(self.clan)
 
@@ -149,9 +157,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         else:
             gamemode = self._GAMEMODES[int(svars["g_gametype"])]
             if clanmems:
-                self.reply("\x02{}:\x02    {}/{} ({} {})    {}    {}".format(name, len(players), svars["sv_maxclients"], clanmems, self.clan, gamemode, svars["mapname"]))
+                self.reply("\x02{}\x02 ({}):    {}/{} ({} {})    {}".format(name, gamemode, len(players), svars["sv_maxclients"], clanmems, self.clan, svars["mapname"]))
             else:
-                self.reply("\x02{}:\x02    {}/{}    {}    {}".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"]))
+                self.reply("\x02{}\x02 ({}):    {}/{}    {}".format(name, gamemode, len(players), svars["sv_maxclients"], svars["mapname"]))
 
     def cmd_help(self, issuedBy, data):
         """.help [command] - displays this message"""
@@ -188,7 +196,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             for s in self.servers:
                 self.parseStatus(s, False, False)
 
-    def cmd_die(self, issuedBy, data):
+    def pw_cmd_die(self, issuedBy, data):
         """.die - kills the bot"""
         if issuedBy in self.owners:
             if data:
@@ -198,7 +206,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         else:
             self.pm(issuedBy, "You don't have access to that command")
 
-    def cmd_rcon(self, issuedBy, data):
+    def pw_cmd_rcon(self, issuedBy, data):
         """.rcon [server] [command] [args...] - send an rcon command to a server"""
         if issuedBy in self.rconowners:
             if data:
