@@ -7,3 +7,4 @@
 + `.status [server]`
 + `.die [message]`
 + `.rcon [server] [command] [args...]`
++ `.login [password]`

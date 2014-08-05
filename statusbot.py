@@ -4,6 +4,12 @@ import irc.bot
 import json
 import socket
 import pyrcon
+import re
+import random
+
+def genRandomString(length):
+    alpha = "abcdefghijklmnopqrstuvwxyz"
+    return "".join(random.choice(alpha) for _ in range(length))
 
 class Pugbot(irc.bot.SingleServerIRCBot):
     def __init__(self, config):
@@ -13,7 +19,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.cmdPrefixes = config["prefixes"]
         self.owners = config["owners"]
         self.rconowners = config["rconowners"]
-        self.password = config["rconpasswd"]
+        self.rconpasswd = config["rconpasswd"]
         self.clan = config["clantag"]
         self.loggedin = self.rconowners
 
@@ -45,14 +51,34 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     def on_welcome(self, conn, e):
         conn.join(self.channel)
 
-    def on_privmsg(self, conn, e):
-        self.executeCommand(conn, e, True)
+        self.password = genRandomString(5)
+        print("The password is: " + self.password)
 
-    def on_pubmsg(self, conn, e):
-        if (e.arguments[0][0] in self.cmdPrefixes):
-            self.executeCommand(conn, e)
+    def on_privmsg(self, conn, ev):
+        self.parseChat(ev)
 
-    def executeCommand(self, conn, ev):
+    def on_pubmsg(self, conn, ev):
+        self.parseChat(ev)
+        if self.password in ev.arguments[0]:
+            self.new_password()
+
+    def parseChat(self, ev):
+        if (ev.arguments[0][0] in self.cmdPrefixes):
+            self.executeCommand(ev)
+
+    def _on_nick(self, conn, ev):
+        old = ev.source.nick
+        new = ev.target
+
+        if old in self.loggedin:
+            self.loggedin.remove(old)
+            self.loggedin.append(new)
+
+    def new_password(self):
+        self.password = genRandomString(5)
+        print("The password is: " + self.password)
+
+    def executeCommand(self, ev):
         issuedBy = ev.source.nick
         text = ev.arguments[0][1:].split(" ")
         command = text[0].lower()
@@ -65,7 +91,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             commandFunc(issuedBy, data)
             found = True
         except AttributeError:
-            if data[:5] == issuedBy in self.loggedin:
+            if data[:5] == self.password or issuedBy in self.loggedin:
                 try:
                     commandFunc = getattr(self, "pw_cmd_" + command)
                     commandFunc(issuedBy, data)
@@ -84,7 +110,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         port = int(parts[1])
 
         sock.connect((host, port))
-        self.rcon = pyrcon.RConnection(host, port, self.password)
+        self.rcon = pyrcon.RConnection(host, port, self.rconpasswd)
         sock.send(b"\xFF\xFF\xFF\xFF" + data.encode())
 
         r = sock.recv(3096)
@@ -138,8 +164,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         sparts = r.split("\n")
 
         players = [p for p in sparts[2:] if p]
-        nplayers = [players.replace("^1", "").replace("^2", "").replace("^3", "").replace("^4", "").replace("^5", "").replace("^6", "").replace("^7", "").replace("^8", "").replace("^9", "").replace("^0", "").replace("^-", "") for players in players]
-        #FIXME: ^holy shit this is so fucking retarded. kill myself. someone pls let me know a better way -.-
+        nplayers = [re.sub("^\^[0-9]", "", player) for player in players]
         clanmems = " ".join(players).count(self.clan)
 
         rawvars = sparts[1].split("\\")[1:]
@@ -196,9 +221,17 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             for s in self.servers:
                 self.parseStatus(s, False, False)
 
+    def pw_cmd_login(self, issuedBy, data):
+        """.login - logs you in"""
+        if issuedBy not in self.loggedin:
+            self.loggedin.append(issuedBy)
+            self.reply("{} has logged in".format(issuedBy))
+        else:
+            self.pm(issuedBy, "You are already logged in")
+
     def pw_cmd_die(self, issuedBy, data):
         """.die - kills the bot"""
-        if issuedBy in self.owners:
+        if issuedBy in self.loggedin:
             if data:
                 self.die("{}".format(data))
             else:
@@ -208,7 +241,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def pw_cmd_rcon(self, issuedBy, data):
         """.rcon [server] [command] [args...] - send an rcon command to a server"""
-        if issuedBy in self.rconowners:
+        if issuedBy in self.loggedin:
             if data:
                 self.parseStatus(data, False, True)
             else:
