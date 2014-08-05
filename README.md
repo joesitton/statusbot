@@ -5,5 +5,5 @@
 + `.servers`
 + `.players [server]`
 + `.status [server]`
-+ `.kill [message]`
++ `.die [message]`
 + `.rcon [server] [command] [args...]`

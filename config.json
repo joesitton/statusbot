@@ -2,18 +2,14 @@
 "server": "irc.quakenet.org",
 "port": 6667,
 "prefixes": ".",
-"channel": "#clan6thfloor",
+"channel": "#channel",
 "nick": "statusbot",
 "owners": [
-    "zod_"
+    ""
 ],
 "rconowners": [
-    "zod_",
-    "falco`",
-    "nikkerz",
-    "tampee",
-    "tamps",
-    "t00dark"
+    ""
 ],
-"rconpasswd": ""
+"rconpasswd": "rcon_password",
+"clantag": "clan_tag"
 }

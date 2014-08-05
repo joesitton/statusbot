@@ -14,6 +14,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.owners = config["owners"]
         self.rconowners = config["rconowners"]
         self.password = config["rconpasswd"]
+        self.clan = config["clantag"]
 
         self.servers = {}
         for line in open("servers.txt", "r").readlines():
@@ -129,6 +130,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         sparts = r.split("\n")
 
         players = [p for p in sparts[2:] if p]
+        clanmems = " ".join(players).count(self.clan)
 
         rawvars = sparts[1].split("\\")[1:]
         svars = {rawvars[i]:rawvars[i+1] for i in range(0, len(rawvars), 2)}
@@ -144,7 +146,10 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.reply("\x0316,2{}\x03 command sent to \x0316,2{}\x03".format(" ".join(data[1:]), name))
         else:
             gamemode = self._GAMEMODES[int(svars["g_gametype"])]
-            self.reply("\x0316,2{}:    {}/{}    {}    {}\x03".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"]))
+            if clanmems:
+                self.reply("\x0316,2{}:    {}/{}    {}    {}  -  {} {}\x03".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"], clanmems, self.clan))
+            else:
+                self.reply("\x0316,2{}:    {}/{}    {}    {}\x03".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"]))
 
     def cmd_help(self, issuedBy, data):
         """.help [command] - displays this message"""
@@ -181,8 +186,8 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             for s in self.servers:
                 self.parseStatus(s, False, False)
 
-    def cmd_kill(self, issuedBy, data):
-        """.kill - kills the bot"""
+    def cmd_die(self, issuedBy, data):
+        """.die - kills the bot"""
         if issuedBy in self.owners:
             if data:
                 self.die("{}".format(data))
