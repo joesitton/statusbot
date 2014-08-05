@@ -98,9 +98,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 matches.append(s)
         
         if not matches:
-            self.reply("No servers found matching  \x0316,2{}\x03 .".format(string))
+            self.reply("No servers found matching  {} .".format(string))
         elif len(matches) > 1:
-            self.reply("There are multiple matches for  \x0316,2{}:\x03 {}".format(string, ", ".join(matches)))
+            self.reply("There are multiple matches for  {}: {}".format(string, ", ".join(matches)))
         else:
             return matches[0], self.servers[matches[0]]
 
@@ -137,19 +137,19 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         if playersCmd:
             if not players:
-                self.reply("There are no players on \x0316,2" + name + "\x03")
+                self.reply("There are no players on " + name + "")
             else:
-                self.reply("Players on \x0316,2{}\x03 ({}/{}):  ".format(name, len(players), svars["sv_maxclients"]) + 
+                self.reply("Players on {} ({}/{}):  ".format(name, len(players), svars["sv_maxclients"]) + 
                            ", ".join(p.split(" ")[2][1:-1] for p in players))
         elif serverCmd:
             self.rcon.send("{}".format(" ".join(data[1:])))
-            self.reply("\x0316,2{}\x03 command sent to \x0316,2{}\x03".format(" ".join(data[1:]), name))
+            self.reply("{} command sent to {}".format(" ".join(data[1:]), name))
         else:
             gamemode = self._GAMEMODES[int(svars["g_gametype"])]
             if clanmems:
-                self.reply("\x0316,2{}:    {}/{} ({} {})    {}    {}\x03".format(name, len(players), svars["sv_maxclients"], clanmems, self.clan, gamemode, svars["mapname"]))
+                self.reply("{}:    {}/{} ({} {})    {}    {}".format(name, len(players), svars["sv_maxclients"], clanmems, self.clan, gamemode, svars["mapname"]))
             else:
-                self.reply("\x0316,2{}:    {}/{}    {}    {}\x03".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"]))
+                self.reply("{}:    {}/{}    {}    {}".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"]))
 
     def cmd_help(self, issuedBy, data):
         """.help [command] - displays this message"""
@@ -168,7 +168,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def cmd_servers(self, issuedBy, data):
         """.servers - display server list"""
-        self.reply("\x0316,2Servers:\x03 " + ", ".join(self.servers))
+        self.reply("Servers: " + ", ".join(self.servers))
 
     def cmd_players(self, issuedBy, data):
         """.players [server] - show current players on the server"""
