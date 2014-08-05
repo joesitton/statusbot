@@ -130,6 +130,8 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         sparts = r.split("\n")
 
         players = [p for p in sparts[2:] if p]
+        nplayers = [players.replace("^1", "").replace("^2", "").replace("^3", "").replace("^4", "").replace("^5", "").replace("^6", "").replace("^7", "").replace("^8", "").replace("^9", "").replace("^0", "") for players in players]
+        #FIXME: ^holy shit this is so fucking retarded. kill myself. someone pls let me know a better way -.-
         clanmems = " ".join(players).count(self.clan)
 
         rawvars = sparts[1].split("\\")[1:]
@@ -140,7 +142,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 self.reply("There are no players on \x02" + name + "\x02")
             else:
                 self.reply("\x02Players on {} ({}/{}):\x02  ".format(name, len(players), svars["sv_maxclients"]) + 
-                           ", ".join(p.split(" ")[2][1:-1] for p in players))
+                           ", ".join(p.split(" ")[2][1:-1] for p in nplayers))
         elif serverCmd:
             self.rcon.send("{}".format(" ".join(data[1:])))
             self.reply("\x02{}\x02 command sent to \x02{}\x02".format(" ".join(data[1:]), name))
