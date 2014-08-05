@@ -127,6 +127,18 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         else:
             self.reply("You don't have access to that command")
 
+    _GAMEMODES = [
+        "FFA",
+        "LMS",
+        "",
+        "TDM",
+        "TS",
+        "FTL",
+        "C&H",
+        "CTF",
+        "BOMB",
+        "JUMP"
+    ]
     def parseStatus(self, data, playersCmd = False):
         name, server = self.serverHelper(data)
 
@@ -148,16 +160,24 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 self.reply("Players on {} ({}/{}): ".format(name, len(players), svars["sv_maxclients"]) + 
                            ", ".join(p.split(" ")[2][1:-1] for p in players))
         else:
-            pass
-            # status command output 
+            gamemode = self._GAMEMODES[int(svars["g_gametype"])]
+            #self.reply("{}: {}/{} players playing {} on {}".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"]))
 
     def cmd_players(self, issuedBy, data):
         """.players [server] - show current players on the server"""
-        self.parseStatus(data, True)
+        if data:
+            self.parseStatus(data, True)
+        else:
+            for s in self.servers:
+                self.parseStatus(s, True)
 
     def cmd_status(self, issuedBy, data):
-        """.status [server] - show server informatioin"""
-        self.parseStatus(data, False)
+        """.status [server] - show server information"""
+        if data:
+            self.parseStatus(data, False)
+        else:
+            for s in self.servers:
+                self.parseStatus(s, False)
 
 def main():
     try:
