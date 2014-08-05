@@ -127,8 +127,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         else:
             self.reply("You don't have access to that command")
 
-    def cmd_players(self, issuedBy, data):
-        """.players [server] - show current players on the server"""
+    def parseStatus(self, data, playersCmd = False):
         name, server = self.serverHelper(data)
 
         if server is None:
@@ -139,26 +138,26 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         players = [p for p in sparts[2:] if p]
 
-        if not players:
-            self.reply("There are no players on " + name)
+        rawvars = sparts[1].split("\\")[1:]
+        svars = {rawvars[i]:rawvars[i+1] for i in range(0, len(rawvars), 2)}
+
+        if playersCmd:
+            if not players:
+                self.reply("There are no players on " + name)
+            else:
+                self.reply("Players on {} ({}/{}): ".format(name, len(players), svars["sv_maxclients"]) + 
+                           ", ".join(p.split(" ")[2][1:-1] for p in players))
         else:
-            self.reply("Players on {}: ".format(name) + 
-                       ", ".join(p.split(" ")[2][1:-1] for p in players))
+            pass
+            # status command output 
+
+    def cmd_players(self, issuedBy, data):
+        """.players [server] - show current players on the server"""
+        self.parseStatus(data, True)
 
     def cmd_status(self, issuedBy, data):
         """.status [server] - show server informatioin"""
-        name, server = self.serverHelper(data)
-
-        if server is None:
-            return
-
-        r = self.sockSend(server, "getstatus")
-        sparts = r.split("\n")
-        
-        rawvars = sparts[1].split("\\")[1:]
-        vars = {rawvars[i]:rawvars[i+1] for i in range(0, len(rawvars), 2)}
- 
-        print(vars["sv_maxclients"])
+        self.parseStatus(data, False)
 
 def main():
     try:
