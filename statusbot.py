@@ -65,17 +65,17 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.reply("Command not found: " + command)
 
     def sockSend(self, address, data):
-       sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-       parts = address.split(":")
-       host = parts[0]
-       port = int(parts[1])
+        parts = address.split(":")
+        host = parts[0]
+        port = int(parts[1])
 
-       sock.connect((host, port))
-       sock.send(b"\xFF\xFF\xFF\xFF" + data.encode())
+        sock.connect((host, port))
+        sock.send(b"\xFF\xFF\xFF\xFF" + data.encode())
 
-       r = sock.recv(1024)
-       return r[4:].decode()
+        r = sock.recv(3096)
+        return r[4:].decode()
 
     def serverHelper(self, string):
         string = string.lower()
@@ -144,6 +144,22 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         else:
             self.reply("Players on {}: ".format(name) + 
                        ", ".join(p.split(" ")[2][1:-1] for p in players))
+
+    def cmd_status(self, issuedBy, data):
+        """.status [server] - show server informatioin"""
+        name, server = self.serverHelper(data)
+
+        if server is None:
+            return
+
+        r = self.sockSend(server, "getstatus")
+        sparts = r.split("\n")
+        
+        rawvars = sparts[1].split("\\")[1:]
+        vars = {rawvars[i]:rawvars[i+1] for i in range(0, len(rawvars), 2)}
+ 
+        print(vars["sv_maxclients"])
+
 def main():
     try:
         configFile = open("config.json", "r")
