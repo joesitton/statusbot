@@ -93,9 +93,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 matches.append(s)
         
         if not matches:
-            self.reply("No servers found matching '{}'.".format(string))
+            self.reply("No servers found matching \x0316,2 {} \x03.".format(string))
         elif len(matches) > 1:
-            self.reply("There are multiple matches for '{}': {}".format(string, ", ".join(matches)))
+            self.reply("There are multiple matches for \x0316,2 {}: \x0316,2 {}".format(string, ", ".join(matches)))
         else:
             return matches[0], self.servers[matches[0]]
 
@@ -118,7 +118,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def cmd_servers(self, issuedBy, data):
         """.servers - display server list"""
-        self.reply("Servers: " + ", ".join(self.servers))
+        self.reply("\x0316,2 Servers: \x03 " + ", ".join(self.servers))
 
     def cmd_kill(self, issuedBy, data):
         """.kill - kills the bot"""
@@ -155,13 +155,13 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         if playersCmd:
             if not players:
-                self.reply("There are no players on " + name)
+                self.reply("There are no players on \x0316,2  " + name + "  \x03")
             else:
-                self.reply("Players on {} ({}/{}): ".format(name, len(players), svars["sv_maxclients"]) + 
+                self.reply("\x0316,2 Players on {} ({}/{}): \x03  ".format(name, len(players), svars["sv_maxclients"]) + 
                            ", ".join(p.split(" ")[2][1:-1] for p in players))
         else:
             gamemode = self._GAMEMODES[int(svars["g_gametype"])]
-            #self.reply("{}: {}/{} players playing {} on {}".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"]))
+            self.reply("\x0316,2 {}:    {}/{}    {}    {} \x03 ".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"]))
 
     def cmd_players(self, issuedBy, data):
         """.players [server] - show current players on the server"""
