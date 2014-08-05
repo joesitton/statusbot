@@ -12,6 +12,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.target = self.channel
         self.cmdPrefixes = config["prefixes"]
         self.owners = config["owners"]
+        self.rconowners = config["rconowners"]
         self.password = config["rconpasswd"]
 
         self.servers = {}
@@ -192,7 +193,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def cmd_rcon(self, issuedBy, data):
         """.rcon [server] [command] [args...] - send an rcon command to a server"""
-        if issuedBy in self.owners:
+        if issuedBy in self.rconowners:
             if data:
                 self.parseStatus(data, False, True)
             else:

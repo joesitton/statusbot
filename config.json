@@ -6,6 +6,9 @@
 "nick": "statusbot",
 "owners": [
     "zod_"
-],
+    ],
+"rconowners": [
+    ""
+    ],
 "rconpasswd": ""
 }
