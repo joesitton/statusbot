@@ -52,7 +52,11 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         conn.join(self.channel)
 
         self.password = genRandomString(5)
-        print("The password is: " + self.password)
+        self._msg_owners(self.password)
+
+    def _msg_owners(self, message):
+        for owner in self.owners:
+            self.pm(owner, message)
 
     def on_privmsg(self, conn, ev):
         self.parseChat(ev)
@@ -76,7 +80,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def new_password(self):
         self.password = genRandomString(5)
-        print("The password is: " + self.password)
+        self._msg_owners(self.password)
 
     def executeCommand(self, ev):
         issuedBy = ev.source.nick
