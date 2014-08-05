@@ -137,19 +137,19 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         if playersCmd:
             if not players:
-                self.reply("There are no players on " + name)
+                self.reply("There are no players on \x02" + name + "\x02")
             else:
-                self.reply("Players on {} ({}/{}):  ".format(name, len(players), svars["sv_maxclients"]) + 
+                self.reply("\x02Players on {} ({}/{}):\x02  ".format(name, len(players), svars["sv_maxclients"]) + 
                            ", ".join(p.split(" ")[2][1:-1] for p in players))
         elif serverCmd:
             self.rcon.send("{}".format(" ".join(data[1:])))
-            self.reply("'{}' command sent to {}".format(" ".join(data[1:]), name))
+            self.reply("\x02{}\x02 command sent to \x02{}\x02".format(" ".join(data[1:]), name))
         else:
             gamemode = self._GAMEMODES[int(svars["g_gametype"])]
             if clanmems:
-                self.reply("{}:    {}/{} ({} {})    {}    {}".format(name, len(players), svars["sv_maxclients"], clanmems, self.clan, gamemode, svars["mapname"]))
+                self.reply("\x02{}:\x02    {}/{} ({} {})    {}    {}".format(name, len(players), svars["sv_maxclients"], clanmems, self.clan, gamemode, svars["mapname"]))
             else:
-                self.reply("{}:    {}/{}    {}    {}".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"]))
+                self.reply("\x02{}:\x02    {}/{}    {}    {}".format(name, len(players), svars["sv_maxclients"], gamemode, svars["mapname"]))
 
     def cmd_help(self, issuedBy, data):
         """.help [command] - displays this message"""
@@ -168,7 +168,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def cmd_servers(self, issuedBy, data):
         """.servers - display server list"""
-        self.reply("Servers: " + ", ".join(self.servers))
+        self.reply("\x02Servers:\x02 " + ", ".join(self.servers))
 
     def cmd_players(self, issuedBy, data):
         """.players [server] - show current players on the server"""
