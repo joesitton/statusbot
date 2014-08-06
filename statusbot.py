@@ -113,9 +113,15 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         host = parts[0]
         port = int(parts[1])
 
-        sock.connect((host, port))
+        try:
+            sock.settimeout(10)
+            sock.connect((host, port))
+            sock.send(b"\xFF\xFF\xFF\xFF" + data.encode())
+        except socket.Timeouterror:
+            sock.close()
+            return
+
         self.rcon = pyrcon.RConnection(host, port, self.rconpasswd)
-        sock.send(b"\xFF\xFF\xFF\xFF" + data.encode())
 
         r = sock.recv(3096)
         return r[4:].decode()
@@ -164,7 +170,11 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         if server is None:
             return
 
-        r = self.sockSend(server, "getstatus")
+        try:
+            r = self.sockSend(server, "getstatus")
+        except socket.Timeouterror:
+            return
+
         sparts = r.split("\n")
 
         players = [p for p in sparts[2:] if p]
