@@ -1,0 +1,7 @@
+-e git+git@github.com:Thor77/TS3Py.git@e1076080c7f43beea74bdf6cd7b23ad8bcc5882b#egg=TS3Py-origin/master
+irc==8.9.1
+jaraco.timing==1.0
+jaraco.util==10.2
+more-itertools==2.2
+pyrcon==0.0.2
+six==1.7.3
