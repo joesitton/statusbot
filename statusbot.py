@@ -13,22 +13,22 @@ def genRandomString(length):
 
 class Pugbot(irc.bot.SingleServerIRCBot):
     def __init__(self, config):
-        super(Pugbot, self).__init__([(config["server"], config["port"])], config["nick"], config["nick"])
-        self.channel = config["channel"]
+        irc_config = self.config["irc"]
+        servers_config = self.config["servers"]
+
+        super(Pugbot, self).__init__(
+            [(["server"], irc_config["port"])],
+            irc_config["nick"], irc_config["nick"])
+        self.channel = irc_config["channel"]
         self.target = self.channel
-        self.cmdPrefixes = config["prefixes"]
-        self.owners = config["owners"]
-        self.rconowners = config["rconowners"]
-        self.rconpasswd = config["rconpasswd"]
+        self.cmdPrefixes = irc_config["prefixes"]
+        self.owners = irc_config["owners"]
+        self.rconowners = irc_config["rconowners"]
+        self.rconpasswd = irc_config["rconpasswd"]
         self.clan = config["clantag"]
         self.loggedin = self.rconowners
 
-        self.servers = {}
-        for line in open("servers.txt", "r").readlines():
-            parts = line.split(" ")
-            addr = parts[-1]
-            name = " ".join(parts[:-1])
-            self.servers[name] = addr
+        self.servers = servers_config
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
