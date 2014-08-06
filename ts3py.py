@@ -148,6 +148,7 @@ class TS3Query(TS3Server):
                 return_info[clid] = client
         return return_info
 
+
     def clients(self):
         '''
         List all clients
@@ -158,6 +159,7 @@ class TS3Query(TS3Server):
             clients.append(client["client_nickname"])
         print(clients)
 
+        
     # end of lists
     def clientinfo(self, client_id):
         '''
