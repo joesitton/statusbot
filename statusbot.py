@@ -196,7 +196,6 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.sendcmd = self.rcon.send("{}".format(" ".join(data[1:])))
             infos = self.sendcmd.split("\n")
             infos = [i for i in infos if i]
-            print(len(infos))
             if "Bad rconpassword." in infos:
                 self.reply("Bad rconpassword")
             elif len(infos) == 2:
