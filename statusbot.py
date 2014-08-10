@@ -244,7 +244,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     def cmd_servers(self, issuedBy, data):
         """.servers - display server list"""
         self.reply("\x02Servers:\x02 " + ", ".join(self.servers))
-        self.reply("\x02Servers:\x02 " + ", ".join(self.ts3servers))
+        self.reply("\x02TS3 Servers:\x02 " + ", ".join(self.ts3servers))
 
     def cmd_players(self, issuedBy, data):
         """.players [server] - show current players on the server"""
