@@ -6,6 +6,7 @@ import socket
 import pyrcon
 import re
 import random
+#import ts3py
 
 def genRandomString(length):
     alpha = "abcdefghijklmnopqrstuvwxyz"
@@ -53,6 +54,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         self.password = genRandomString(5)
         self._msg_owners(self.password)
+        print(self.password)
 
     def _msg_owners(self, message):
         for owner in self.owners:
@@ -191,8 +193,18 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 self.reply("\x02Players on {} ({}/{}):\x02  ".format(name, len(players), svars["sv_maxclients"]) + 
                            ", ".join(p.split(" ")[2][1:-1] for p in nplayers))
         elif serverCmd:
-            self.rcon.send("{}".format(" ".join(data[1:])))
-            self.reply("\x02{}\x02 command sent to \x02{}\x02".format(" ".join(data[1:]), name))
+            self.sendcmd = self.rcon.send("{}".format(" ".join(data[1:])))
+            infos = self.sendcmd.split("\n")
+            infos = [i for i in infos if i]
+            print(len(infos))
+            if "Bad rconpassword." in infos:
+                self.reply("Bad rconpassword")
+            elif len(infos) == 2:
+                ninfo = [re.sub("\^[0-9-]", "", info) for info in infos]
+                self.reply("".join(ninfo[1]))
+            else:
+                self.sendcmd
+                self.reply("\x02{}\x02 command sent to \x02{}\x02".format(" ".join(data[1:]), name))
         else:
             gamemode = self._GAMEMODES[int(svars["g_gametype"])]
             if clanmems:

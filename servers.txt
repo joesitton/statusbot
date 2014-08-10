@@ -6,3 +6,4 @@ Zod's clan6thfloor.com:27960
 UrT East 64.94.238.89:27961
 gXS' Dust 188.40.128.151:27960
 Fallin Angels 209.190.50.170:27960
+Not Zod's Server notzod.com:27960
