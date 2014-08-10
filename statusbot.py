@@ -104,14 +104,14 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             commandFunc(self.issuedBy, data)
             found = True
         except AttributeError:
-            if data[:5] == self.password or self.issuedBy in self.loggedin:
-                try:
-                    commandFunc = getattr(self, "pw_cmd_" + command)
-                    commandFunc(self.issuedBy, data)
-                    found = True
-                except AttributeError:
+            try:
+                commandFunc = getattr(self, "a_cmd_" + command)
+                commandFunc(self.issuedBy, data)
+                found = True
+            except AttributeError:
+                if data[:5] == self.password or self.issuedBy in self.loggedin:
                     try:
-                        commandFunc = getattr(self, "a_cmd_" + command)
+                        commandFunc = getattr(self, "pw_cmd_" + command)
                         commandFunc(self.issuedBy, data)
                         found = True
                     except AttributeError:
