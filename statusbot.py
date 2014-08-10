@@ -6,7 +6,7 @@ import socket
 import pyrcon
 import re
 import random
-#import ts3py
+import ts3py
 
 def genRandomString(length):
     alpha = "abcdefghijklmnopqrstuvwxyz"
@@ -30,6 +30,13 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             addr = parts[-1]
             name = " ".join(parts[:-1])
             self.servers[name] = addr
+
+        self.ts3servers = {}
+        for line in open("ts3.txt", "r").readlines():
+            parts = line.split(" ")
+            addr = parts[-1]
+            name = " ".join(parts[:-1])
+            self.ts3servers[name] = addr
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
@@ -253,6 +260,27 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         else:
             for s in self.servers:
                 self.parseStatus(s, False, False)
+
+    def cmd_ts3(self, issuedBy, data):
+        """.ts3 [server] - show people connected to a ts3 server"""
+        try:
+            address = self.ts3servers[data]
+        except KeyError:
+            self.reply("Invalid TS3 server: '{}'".format(data))
+            return
+
+        parts = address.split(":")
+        host = parts[0]
+        port = 10011
+        vs_id = parts[1]
+
+        connection = ts3py.TS3Query(host, port)
+        connection.connect(host, port)
+        connection.use(vs_id)
+
+        people = connection.clients()
+
+        self.reply("\x02{}\x02 clients on \x02{}\x02 TS3: {}".format(len(people), data, ", ".join(connection.clients())))
 
     def a_cmd_s(self, issuedBy, data):
         self.cmd_status(issuedBy, data)
