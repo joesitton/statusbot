@@ -193,8 +193,8 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 self.reply("\x02Players on {} ({}/{}):\x02  ".format(name, len(players), svars["sv_maxclients"]) + 
                            ", ".join(p.split(" ")[2][1:-1] for p in nplayers))
         elif serverCmd:
-            self.sendcmd = self.rcon.send("{}".format(" ".join(data[1:])))
-            infos = self.sendcmd.split("\n")
+            sendcmd = self.rcon.send("{}".format(" ".join(data[1:])))
+            infos = sendcmd.split("\n")
             infos = [i for i in infos if i]
             if "Bad rconpassword." in infos:
                 self.reply("Bad rconpassword")
@@ -202,7 +202,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 ninfo = [re.sub("\^[0-9-]", "", info) for info in infos]
                 self.reply("".join(ninfo[1]))
             else:
-                self.sendcmd
+                sendcmd
                 self.reply("\x02{}\x02 command sent to \x02{}\x02".format(" ".join(data[1:]), name))
         else:
             gamemode = self._GAMEMODES[int(svars["g_gametype"])]
