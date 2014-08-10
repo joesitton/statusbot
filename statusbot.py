@@ -103,7 +103,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                     commandFunc(self.issuedBy, data)
                     found = True
                 except AttributeError:
-                    pass
+                    try:
+                        commandFunc = getattr(self, "a_cmd_" + command)
+                        commandFunc(self.issuedBy, data)
+                        found = True
+                    except AttributeError:
+                        pass
         
         if not found:
             self.reply("Command not found: " + command)
@@ -248,6 +253,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         else:
             for s in self.servers:
                 self.parseStatus(s, False, False)
+
+    def a_cmd_s(self, issuedBy, data):
+        self.cmd_status(issuedBy, data)
+
+    def a_cmd_p(self, issuedBy, data):
+        self.cmd_players(issuedBy, data)
 
     def pw_cmd_login(self, issuedBy, data):
         """.login - logs you in"""
