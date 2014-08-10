@@ -6,7 +6,6 @@ import socket
 import pyrcon
 import re
 import random
-#import operator
 #import ts3py
 
 def genRandomString(length):
@@ -86,8 +85,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self._msg_owners(self.password)
 
     def executeCommand(self, ev):
-        issuedBy = ev.source.nick
-        #self.nissuedBy = ev.source.nick
+        self.issuedBy = ev.source.nick
         text = ev.arguments[0][1:].split(" ")
         command = text[0].lower()
         data = " ".join(text[1:])
@@ -96,13 +94,13 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         try:
             commandFunc = getattr(self, "cmd_" + command)
-            commandFunc(issuedBy, data)
+            commandFunc(self.issuedBy, data)
             found = True
         except AttributeError:
-            if data[:5] == self.password or issuedBy in self.loggedin:
+            if data[:5] == self.password or self.issuedBy in self.loggedin:
                 try:
                     commandFunc = getattr(self, "pw_cmd_" + command)
-                    commandFunc(issuedBy, data)
+                    commandFunc(self.issuedBy, data)
                     found = True
                 except AttributeError:
                     pass
@@ -203,18 +201,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             elif len(infos) == 2:
                 ninfo = [re.sub("\^[0-9-]", "", info) for info in infos]
                 self.reply("".join(ninfo[1]))
-            #elif data[1] == "dumpuser":
-            #    gt = self.rcon.send("g_gametype").split(" ")
-            #    gt = gt[1][4:-3]
-            #    
-            #    if gt == "9":
-            #        uis = operator.itemgetter(3, 4, 6, 10, 12, 25, 27)(infos)
-            #        for i in range(0, 8):
-            #            self.pm(self.nissuedBy, "{}".format(uis[i]))
-            #    elif gt != "9":
-            #        uis = operator.itemgetter(3, 4, 6, 7, 9, 11, 22)(infos)
-            #        for i in range(0, 7):
-            #            self.pm(self.nissuedBy, "{}".format(uis[i]))
+            elif data[1] == "dumpuser":
+                for i in range(3, len(infos)):
+                    self.pm(self.issuedBy, "{}".format(infos[i]))
             else:
                 sendcmd
                 self.reply("\x02{}\x02 command sent to \x02{}\x02".format(" ".join(data[1:]), name))
@@ -262,32 +251,32 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def pw_cmd_login(self, issuedBy, data):
         """.login - logs you in"""
-        if issuedBy not in self.loggedin:
-            self.loggedin.append(issuedBy)
-            self.reply("{} has logged in".format(issuedBy))
+        if self.issuedBy not in self.loggedin:
+            self.loggedin.append(self.issuedBy)
+            self.reply("{} has logged in".format(self.issuedBy))
         else:
-            self.pm(issuedBy, "You are already logged in")
+            self.pm(self.issuedBy, "You are already logged in")
 
     def pw_cmd_die(self, issuedBy, data):
         """.die - kills the bot"""
-        if issuedBy in self.loggedin:
+        if self.issuedBy in self.loggedin:
             if data:
                 self.die("{}".format(data))
             else:
                 self.die("Leaving")
         else:
-            self.pm(issuedBy, "You don't have access to that command")
+            self.pm(self.issuedBy, "You don't have access to that command")
 
     def pw_cmd_rcon(self, issuedBy, data):
         """.rcon [server] [command] [args...] - send an rcon command to a server"""
-        if issuedBy in self.loggedin:
+        if self.issuedBy in self.loggedin:
             if data:
                 self.parseStatus(data, False, True)
             else:
                 for s in self.servers:
                     self.parseStatus(s, False, True)
         else:
-            self.pm(issuedBy, "You don't have access to that command")
+            self.pm(self.issuedBy, "You don't have access to that command")
 
 def main():
     try:
