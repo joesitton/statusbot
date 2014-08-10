@@ -6,6 +6,7 @@ import socket
 import pyrcon
 import re
 import random
+#import operator
 #import ts3py
 
 def genRandomString(length):
@@ -86,6 +87,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def executeCommand(self, ev):
         issuedBy = ev.source.nick
+        #self.nissuedBy = ev.source.nick
         text = ev.arguments[0][1:].split(" ")
         command = text[0].lower()
         data = " ".join(text[1:])
@@ -201,6 +203,18 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             elif len(infos) == 2:
                 ninfo = [re.sub("\^[0-9-]", "", info) for info in infos]
                 self.reply("".join(ninfo[1]))
+            #elif data[1] == "dumpuser":
+            #    gt = self.rcon.send("g_gametype").split(" ")
+            #    gt = gt[1][4:-3]
+            #    
+            #    if gt == "9":
+            #        uis = operator.itemgetter(3, 4, 6, 10, 12, 25, 27)(infos)
+            #        for i in range(0, 8):
+            #            self.pm(self.nissuedBy, "{}".format(uis[i]))
+            #    elif gt != "9":
+            #        uis = operator.itemgetter(3, 4, 6, 7, 9, 11, 22)(infos)
+            #        for i in range(0, 7):
+            #            self.pm(self.nissuedBy, "{}".format(uis[i]))
             else:
                 sendcmd
                 self.reply("\x02{}\x02 command sent to \x02{}\x02".format(" ".join(data[1:]), name))
