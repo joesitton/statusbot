@@ -280,8 +280,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         connection.use(vs_id)
 
         people = connection.clients()
+        people = [p for p in people if not "Unknown" in p]
 
-        self.reply("\x02{}\x02 clients on \x02{}\x02 TS3: {}".format(len(people), data, ", ".join(connection.clients())))
+        self.reply("\x02{}\x02 clients on \x02{}\x02 TS3: {}".format(len(people), data, ", ".join(people)))
 
     def a_cmd_s(self, issuedBy, data):
         self.cmd_status(issuedBy, data)
