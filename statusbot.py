@@ -193,7 +193,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         players = [p for p in sparts[2:] if p]
         nplayers = [re.sub("\^[0-9-]", "", player) for player in players]
-        clanmems = " ".join(players).count(self.clan)
+        clanmems = len([x for x in players if self.clan in x])
 
         rawvars = sparts[1].split("\\")[1:]
         svars = {rawvars[i]:rawvars[i+1] for i in range(0, len(rawvars), 2)}
@@ -221,10 +221,20 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 self.reply("\x02{}\x02 command sent to \x02{}\x02".format(" ".join(data[1:]), name))
         else:
             gamemode = self._GAMEMODES[int(svars["g_gametype"])]
+            longLen = len(max(self.servers, key = len))
             if clanmems:
-                self.reply("\x02{}\x02 ({}):    {}/{} ({} {})    {}".format(name, gamemode, len(players), svars["sv_maxclients"], clanmems, self.clan, svars["mapname"]))
+                self.reply("{}\x02{}\x02 {}{} {}".format(\
+                    ("(" + gamemode + ")").ljust(7),
+                    (name + ":").ljust(longLen + 2),
+                    (str(len(players)) + "/" + svars["sv_maxclients"]).ljust(8), 
+                    ("(" + str(clanmems) + " " + self.clan + ")").ljust(12),
+                    svars["mapname"]))
             else:
-                self.reply("\x02{}\x02 ({}):    {}/{}    {}".format(name, gamemode, len(players), svars["sv_maxclients"], svars["mapname"]))
+                self.reply("{}\x02{}\x02 {} {}".format(\
+                    ("(" + gamemode + ")").ljust(7),
+                    (name + ":").ljust(longLen + 2),
+                    (str(len(players)) + "/" + svars["sv_maxclients"]).ljust(20), 
+                    svars["mapname"]))
 
     def cmd_help(self, issuedBy, data):
         """.help [command] - displays this message"""
