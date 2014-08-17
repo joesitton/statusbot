@@ -26,7 +26,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         self.servers = {}
         for line in open("servers.txt", "r").readlines():
-            parts = line.split(" ")
+            parts = line.strip().split(" ")
             addr = parts[-1]
             name = " ".join(parts[:-1])
             self.servers[name] = addr
@@ -111,14 +111,14 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         except AttributeError:
             try:
                 commandFunc = getattr(self, "a_cmd_" + command)
-                commandFunc(self.issuedBy, data)
                 found = True
+                commandFunc(self.issuedBy, data)
             except AttributeError:
                 if data[:5] == self.password or self.issuedBy in self.loggedin:
                     try:
                         commandFunc = getattr(self, "pw_cmd_" + command)
-                        commandFunc(self.issuedBy, data)
                         found = True
+                        commandFunc(self.issuedBy, data)
                     except AttributeError:
                         pass
         
@@ -133,10 +133,10 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         port = int(parts[1])
 
         try:
-            sock.settimeout(10)
+            sock.settimeout(3)
             sock.connect((host, port))
             sock.send(b"\xFF\xFF\xFF\xFF" + data.encode())
-        except socket.Timeouterror:
+        except socket.timeout:
             sock.close()
             return
 
@@ -189,9 +189,16 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         if server is None:
             return
 
+        longLen = len(max(self.servers, key = len))
+        
         try:
             r = self.sockSend(server, "getstatus")
-        except socket.Timeouterror:
+        except socket.timeout:
+            if playersCmd:
+                self.reply("{} server i".format(name))
+            elif not serverCmd:
+                self.reply("(N/A)  \x02{}\x02 \x034SERVER IS DOWN".format(\
+                    (name + ":").ljust(longLen + 2)))
             return
 
         sparts = r.split("\n")
@@ -226,7 +233,6 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 self.reply("\x02{}\x02 command sent to \x02{}\x02".format(" ".join(data[1:]), name))
         else:
             gamemode = self._GAMEMODES[int(svars["g_gametype"])]
-            longLen = len(max(self.servers, key = len))
             if clanmems:
                 self.reply("{}\x02{}\x02 {}{} {}".format(\
                     ("(" + gamemode + ")").ljust(7),
