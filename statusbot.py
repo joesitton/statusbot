@@ -68,16 +68,16 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.pm(owner, message)
 
     def on_privmsg(self, conn, ev):
-        self.parseChat(ev)
+        self.parseChat(ev, True)
 
     def on_pubmsg(self, conn, ev):
         self.parseChat(ev)
         if self.password in ev.arguments[0]:
             self.new_password()
 
-    def parseChat(self, ev):
+    def parseChat(self, ev, priv = False):
         if (ev.arguments[0][0] in self.cmdPrefixes):
-            self.executeCommand(ev)
+            self.executeCommand(ev, priv)
 
     def _on_nick(self, conn, ev):
         old = ev.source.nick
@@ -91,11 +91,16 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.password = genRandomString(5)
         self._msg_owners(self.password)
 
-    def executeCommand(self, ev):
+    def executeCommand(self, ev, priv):
         self.issuedBy = ev.source.nick
         text = ev.arguments[0][1:].split(" ")
         command = text[0].lower()
         data = " ".join(text[1:])
+
+        if priv:
+            self.target = self.issuedBy
+        else:
+            self.target = self.channel
 
         found = False
 
