@@ -305,6 +305,18 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         self.reply("\x02{}\x02 clients on \x02{}\x02 TS3: {}".format(len(people), data, ", ".join(people)))
 
+    def cmd_info(self, issuedBy, data):
+        if not data:
+            return
+
+        data = data.split(" ")
+        info = self.serverHelper(data[0])
+
+        try:
+            self.reply("\x02{}\x02 connection info: /connect {}".format(info[0], info[1][:-1]))
+        except:
+            return
+
     def a_cmd_s(self, issuedBy, data):
         self.cmd_status(issuedBy, data)
 
