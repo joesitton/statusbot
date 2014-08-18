@@ -312,8 +312,11 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         data = data.split(" ")
         info = self.serverHelper(data[0])
 
+        if None in info:
+            return
+
         try:
-            self.reply("\x02{}\x02 connection info: /connect {}".format(info[0], info[1][:-1]))
+            self.reply("\x02{}\x02 connection info: /connect {}".format(info[0], info[1]))
         except:
             return
 
