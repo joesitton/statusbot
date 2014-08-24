@@ -206,6 +206,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 matches = [s]
                 break
 
+            if string in s.lower():
+                matches.append(s)
+
         if not matches:
             self.reply("No servers found matching '{}'.".format(string))
         elif len(matches) > 1:
@@ -247,7 +250,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             r = self.sockSend(server, "getstatus")
         except socket.timeout:
             if playersCmd:
-                self.reply("{} server i".format(name))
+                self.reply("{} is down".format(name))
             elif not serverCmd:
                 self.reply("(N/A)  \x02{}\x02 \x034SERVER IS DOWN".format(\
                     (name + ":").ljust(longLen + 2)))
@@ -401,6 +404,34 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         for i in range(1, len(n)):
             time.sleep(1)
             self.reply("{}".format(", ".join(n[i])))
+
+    def cmd_quotes(self, issuedBy, data):
+        """.quotes - show quotes from clan members"""
+        quotes = [
+            "<nikkerz> almost took in another foster named grandma dog | <ducci> too bad she's named after a Fallin Angels member",
+            "Holla... I'll mail you my mouth and you can use it to suck your dick (c) Clear",
+            "I'll enchant your butthole with my penis (c) FragTag",
+            "I just took a shit bigger than falco's ego (c) ReigN*",
+            "That's why I don't want a dog, it would start barking at things and I would think it's barking at a ghost and I would be scared (c) Jason",
+            "I remember feeling so manly when I used to shoot my BB gun (c) Jason",
+            "you were inside me for a second there, that was a weird feeling. (c) Clear",
+            "I've been sitting here drinking my pee and its not that bad, its just water (c) Creeper",
+            "were you drunk last night or just weeded? (c) 0sch",
+            "carrots used to be blue my fucking ass (c) Zod",
+            "so how did team canada going (c) FragTag",
+            "Dude, i would have so many beers with you right now, id fuck an animal (c) 0sch",
+            "Now in farm simulator, are you a farmer, a tractor, or an actual farm? (c) Clear",
+            "its just me and tampee (c) Tampee",
+            "i asked him if he was gay, and thats when he went soft on me (c) Russa",
+            "that boner seems like a good fit around here (c) Tampee",
+            "he will try to sneak a sausage in (c) Russa",
+            "hey falco, you want to be on a team with falco? (c) FragTag"
+        ]
+
+        matches = [q for q in quotes if data in q]
+        for i in range(0, len(matches)):
+            time.sleep(1)
+            self.reply("{}".format(matches[i]))
 
     """
     #------------------------------------------#
