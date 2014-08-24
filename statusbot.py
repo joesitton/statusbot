@@ -7,6 +7,7 @@ import pyrcon
 import re
 import random
 import ts3py
+import time
 
 def genRandomString(length):
     alpha = "abcdefghijklmnopqrstuvwxyz"
@@ -40,6 +41,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
+
+    """
+    #------------------------------------------#
+    #            IRC-Related Stuff             #
+    #------------------------------------------#
+    """
     
     def on_nicknameinuse(self, conn, ev):
         conn.nick(conn.get_nickname() + "_")
@@ -91,6 +98,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.password = genRandomString(5)
         self._msg_owners(self.password)
 
+    """
+    #------------------------------------------#
+    #            Command Execution             #
+    #------------------------------------------#
+    """
+
     def executeCommand(self, ev, priv):
         self.issuedBy = ev.source.nick
         text = ev.arguments[0][1:].split(" ")
@@ -125,6 +138,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         if not found:
             self.reply("Command not found: " + command)
 
+    """
+    #------------------------------------------#
+    #             Sock Connection              #
+    #------------------------------------------#
+    """
+
     def sockSend(self, address, data):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -145,6 +164,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         r = sock.recv(3096)
         return r[4:].decode()
 
+    """
+    #------------------------------------------#
+    #            Command Helpers               #
+    #------------------------------------------#
+    """
+
     def serverHelper(self, string):
         string = string.lower()
         matches = []
@@ -161,11 +186,32 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 matches.append(s)
         
         if not matches:
-            self.reply("No servers found matching  '{}' .".format(string))
+            self.reply("No servers found matching '{}'.".format(string))
         elif len(matches) > 1:
             self.reply("There are multiple matches for  {}: {}".format(string, ", ".join(matches)))
         else:
             return matches[0], self.servers[matches[0]]
+
+        return None, None
+
+    def ts3Helper(self, string):
+        string = string.lower()
+        matches = []
+
+        if not string:
+            return
+
+        for s in self.ts3servers:
+            if string == s.lower():
+                matches = [s]
+                break
+
+        if not matches:
+            self.reply("No servers found matching '{}'.".format(string))
+        elif len(matches) > 1:
+            self.reply("There are multiple matches for {}: {}".format(string, ", ".join(matches)))
+        else:
+            return matches[0], self.ts3servers[matches[0]]
 
         return None, None
 
@@ -181,6 +227,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         "BOMB",
         "JUMP"
     ]
+
+    """
+    #------------------------------------------#
+    #               Chat Parser                #
+    #------------------------------------------#
+    """
 
     def parseStatus(self, data, playersCmd = False, serverCmd = False):
         data = data.split(" ")
@@ -247,6 +299,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                     (str(len(players)) + "/" + svars["sv_maxclients"]).ljust(20), 
                     svars["mapname"]))
 
+    """
+    #------------------------------------------#
+    #               Commands                   #
+    #------------------------------------------#
+    """
+
     def cmd_help(self, issuedBy, data):
         """.help [command] - displays this message"""
         if data == "":
@@ -285,13 +343,13 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def cmd_ts3(self, issuedBy, data):
         """.ts3 [server] - show people connected to a ts3 server"""
-        try:
-            address = self.ts3servers[data]
-        except KeyError:
-            self.reply("Invalid TS3 server: '{}'".format(data))
+        if not data:
             return
 
-        parts = address.split(":")
+        data = data.split(" ")
+        address = self.ts3Helper(data[0])
+
+        parts = address[1].split(":")
         host = parts[0]
         port = 10011
         vs_id = parts[1]
@@ -303,9 +361,10 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         people = connection.clients()
         people = [p for p in people if not "Unknown" in p]
 
-        self.reply("\x02{}\x02 clients on \x02{}\x02 TS3: {}".format(len(people), data, ", ".join(people)))
+        self.reply("\x02{}\x02 clients on \x02{}\x02 TS3: {}".format(len(people), "".join(data), ", ".join(people)))
 
     def cmd_info(self, issuedBy, data):
+        """.info [server] - show connection info for a server"""
         if not data:
             return
 
@@ -320,11 +379,46 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         except:
             return
 
+    def cmd_maps(self, issuedBy, data):
+        """.maps [server] - list the maps on a server"""
+        if not data:
+            return
+
+        server = self.serverHelper(data)
+        parts = server[1].split(":")
+
+        host = parts[0]
+        port = int(parts[1])
+
+        conn = pyrcon.RConnection(host, port, self.rconpasswd)
+        m = conn.send("dir .")
+        m = m.split("\n")
+        m = [m for m in m if ".pk3" in m and "zUrT42" not in m]
+        m = [m.replace(".pk3", "").replace("ut42_", "").replace("ut4_", "").replace("_", " ") for m in m]
+        n = [tuple(m[i:i+5]) for i in range(0, len(m), 5)]
+
+        self.reply("\x02{}\x02 maps on \x02{}:\x02 {}".format(len(m), server[0], ", ".join(n[0])))
+        for i in range(1, len(n)):
+            time.sleep(1)
+            self.reply("{}".format(", ".join(n[i])))
+
+    """
+    #------------------------------------------#
+    #               Aliases                    #
+    #------------------------------------------#
+    """
+
     def a_cmd_s(self, issuedBy, data):
         self.cmd_status(issuedBy, data)
 
     def a_cmd_p(self, issuedBy, data):
         self.cmd_players(issuedBy, data)
+
+    """
+    #------------------------------------------#
+    #             Admin Commands               #
+    #------------------------------------------#
+    """
 
     def pw_cmd_login(self, issuedBy, data):
         """.login - logs you in"""
