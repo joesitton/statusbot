@@ -1,1 +1,5 @@
 config.json
+config/twitter.json
+__pycache__/*
+plugins/__pycache__/*
+database/*
